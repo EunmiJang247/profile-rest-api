@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '0az=jh9jv$ai(ul_9$dicd780ujnwey!@2lw&m@lvwz6c4d)1-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(int(os.environ.get('DEBUG', 1)))
 
 ALLOWED_HOSTS = []
 
@@ -123,3 +123,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 AUTH_USER_MODEL='profiles_api.UserProfile' # 우리가 만든 uSER모델을 쓸수있도록 설정
+
+STATIC_ROOT = 'static/'
