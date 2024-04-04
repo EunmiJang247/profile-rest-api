@@ -2,8 +2,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
+from rest_framework.authentication import TokenAuthentication
+from rest_framework import filters
 
 from profiles_api import serializers
+from profiles_api import models
+from profiles_api import permissions
 
 # Create your views here.
 class HelloApiView(APIView):
@@ -36,11 +40,31 @@ class HelloApiView(APIView):
 
     def put(self, request, pk=None):
         """Handle updating an object"""
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')
+            message = f'Hello {name}'
+            return Response({'messagePut': message})
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response({'method': 'PUT'})
 
     def patch(self, request, pk=None):
         """Handle partial update of object"""
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data.get('name')
+            message = f'Hello {name}'
+            return Response({'messagePatch!': message})
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         return Response({'method': 'PATCH'})
 
@@ -53,6 +77,7 @@ class HelloViewSet(viewsets.ViewSet):
     """Test API ViewSet"""
     serializer_class = serializers.HelloSerializer
 
+    # http://localhost:8000/api/hello-viewset/로 접속 시
     def list(self, request):
         """Return Hello message"""
         a_viewset = [
@@ -63,7 +88,7 @@ class HelloViewSet(viewsets.ViewSet):
 
         return Response({'message': 'Hello', 'a_viewset': a_viewset})
 
-    # Create 기능 POST Name에 넣어야함.
+    # Create 기능 POST Name에 넣어야함. HTML form / Raw data에 넣기
     def create(self, request):
         """ create a new hello message"""
         serializer = self.serializer_class(data=request.data)
@@ -98,3 +123,12 @@ class HelloViewSet(viewsets.ViewSet):
         """Handle removing an object"""
 
         return Response({'http_method': 'DELETE'})
+
+class UserProfileViewSet(viewsets.ModelViewSet):
+    """Handle creating, creating and updating profiles"""
+    serializer_class = serializers.UserProfileSerializer
+    queryset = models.UserProfile.objects.all()
+    authentication_classes = (TokenAuthentication, )
+    permission_classes = (permissions.UpdateOwnProfile,  )
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name', 'email',)
